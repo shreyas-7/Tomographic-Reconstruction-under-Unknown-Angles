@@ -1,0 +1,165 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>slle</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-05-03"><meta name="DC.source" content="slle.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">SLLE implementation</a></li><li><a href="#2">Testing with different number of angles and nearest neighbours.</a></li><li><a href="#3">Testing on different noise levels</a></li></ul></div><h2 id="1">SLLE implementation</h2><pre class="codeinput">clc;clear <span class="string">all</span>;close <span class="string">all</span> ;
+rng(0,<span class="string">'twister'</span>)
+
+h = 256 ;
+
+<span class="comment">% num_angles = 128 ;</span>
+w=h;
+img = phantom (h,w) ;
+
+out = {} ;
+
+K = [1,10,50,100] ;
+num_angles = [32,64,128,256,512] ;
+</pre><h2 id="2">Testing with different number of angles and nearest neighbours.</h2><pre class="codeinput"><span class="keyword">for</span> k=1:size(K,2)
+    <span class="keyword">for</span> ang = 1:size(num_angles,2)
+        <span class="keyword">if</span> num_angles(ang) &lt; K(k) ; <span class="keyword">continue</span> ; <span class="keyword">end</span>
+        out{end+1} = run_sLLE(img,num_angles(ang),K(k));
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+figure;
+i=1;
+j=1;
+<span class="keyword">for</span> k=1:size(K,2)
+    <span class="keyword">for</span> ang = 1:size(num_angles,2)
+        <span class="keyword">if</span> num_angles(ang) &lt; K(k) ; i=i+1; <span class="keyword">continue</span> ; <span class="keyword">end</span>
+        subplot(4,5,i);
+        imshow(out{j},[]) ; title([<span class="string">'angles='</span>,num2str(num_angles(ang)),<span class="string">' K='</span>,num2str(K(k))]);
+        j=j+1;
+        i=i+1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="slle_01.png" alt=""> <h2 id="3">Testing on different noise levels</h2><pre class="codeinput">figure;
+i=0;
+<span class="keyword">for</span> var = [0.01,0.1,0.5,1]
+    <span class="keyword">for</span> ang = [128]
+        i=i+1 ;
+        out = run_sLLE(img+var*randn(size(img)),ang,10);
+        subplot(1,4,i); imshow(out);title([<span class="string">'variance='</span>,num2str(var)]) ;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="slle_02.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% SLLE implementation
+clc;clear all;close all ;
+rng(0,'twister')
+
+h = 256 ; 
+
+% num_angles = 128 ;
+w=h;
+img = phantom (h,w) ; 
+
+out = {} ;
+
+K = [1,10,50,100] ;
+num_angles = [32,64,128,256,512] ; 
+
+%% Testing with different number of angles and nearest neighbours.
+
+for k=1:size(K,2) 
+    for ang = 1:size(num_angles,2)
+        if num_angles(ang) < K(k) ; continue ; end
+        out{end+1} = run_sLLE(img,num_angles(ang),K(k)); 
+    end
+end
+
+figure; 
+i=1;
+j=1;
+for k=1:size(K,2) 
+    for ang = 1:size(num_angles,2)
+        if num_angles(ang) < K(k) ; i=i+1; continue ; end
+        subplot(4,5,i); 
+        imshow(out{j},[]) ; title(['angles=',num2str(num_angles(ang)),' K=',num2str(K(k))]);
+        j=j+1;
+        i=i+1; 
+    end
+end
+
+
+%% Testing on different noise levels
+figure; 
+i=0;
+for var = [0.01,0.1,0.5,1]
+    for ang = [128]
+        i=i+1 ; 
+        out = run_sLLE(img+var*randn(size(img)),ang,10); 
+        subplot(1,4,i); imshow(out);title(['variance=',num2str(var)]) ; 
+    end
+end
+
+
+
+
+##### SOURCE END #####
+--></body></html>

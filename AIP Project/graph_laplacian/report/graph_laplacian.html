@@ -1,0 +1,169 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>graph_laplacian</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-05-03"><meta name="DC.source" content="graph_laplacian.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Shreyas Pimpalgaonkar - Angle estimation for tomography with unknown angles</a></li><li><a href="#2">Experiment with different number of angles</a></li><li><a href="#3">Noiseless experiment for different epsilon</a></li><li><a href="#4">Testing for different noise variances</a></li><li><a href="#5">Running algorithm on brain images</a></li></ul></div><h2 id="1">Shreyas Pimpalgaonkar - Angle estimation for tomography with unknown angles</h2><pre class="codeinput">clc;clear <span class="string">all</span>; close <span class="string">all</span> ;
+rng(0,<span class="string">'twister'</span>)
+
+h = 256 ;
+mN = 512 ; <span class="comment">% Number of angles</span>
+m = 4 ;
+N = mN/m ; <span class="comment">% Final number of angles</span>
+w=h;
+
+img = phantom (h) ;
+
+angles = linspace(0,180,mN) ;
+angles = angles(randperm(size(angles,2))) ;
+</pre><h2 id="2">Experiment with different number of angles</h2><pre class="codeinput"><span class="keyword">for</span> mn=[128,512,1024]
+    run_diff_angles(img,mn,140) ;
+    pause(1) ;
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="graph_laplacian_01.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_02.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_03.png" alt=""> <h2 id="3">Noiseless experiment for different epsilon</h2><pre class="codeinput">figure; imshow(img,[]) ; title(<span class="string">'Original image'</span>) ; pause(1) ;
+X = radon(img,angles,500) ;
+<span class="keyword">for</span> epsilon = [1,50,150,200]
+   out = perform_graph_laplacian(X,angles,mN,N,m,epsilon);
+   figure; imshow(out,[]) ; title ([<span class="string">'epsilon = '</span>,num2str(epsilon)]) ; pause(1);
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="graph_laplacian_04.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_05.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_06.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_07.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_08.png" alt=""> <h2 id="4">Testing for different noise variances</h2><p>Clearly on increasing the noise variance the algorithm does badly in case of high noise</p><pre class="codeinput"><span class="keyword">for</span> noise_variance=[0.05,0.1,0.5]
+   noisy_img = img + noise_variance * randn(size(img)) ;
+   X = radon(noisy_img,angles,500) ;
+   out = perform_graph_laplacian(X,angles,mN,N,m,140);
+   figure;
+   subplot(1,2,1) ; imshow(noisy_img,[]) ; title([<span class="string">'sigma='</span>,num2str(noise_variance)]) ;
+   subplot(1,2,2) ; imshow(out,[]) ; title (<span class="string">'Reconstructed image'</span>) ;
+   pause(1) ;
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="graph_laplacian_09.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_10.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_11.png" alt=""> <h2 id="5">Running algorithm on brain images</h2><p>Chosen the best epsilon</p><pre class="codeinput">load <span class="string">brain_image</span> ;
+brain = imageData .* imageMask ;
+figure; imshow(brain,[]); title(<span class="string">'Original image'</span>) ; pause(1) ;
+<span class="keyword">for</span> angles = [128,256,512,1024]
+    run_diff_angles(brain,angles,480) ;
+    pause(1) ;
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="graph_laplacian_12.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_13.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_14.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_15.png" alt=""> <img vspace="5" hspace="5" src="graph_laplacian_16.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Shreyas Pimpalgaonkar - Angle estimation for tomography with unknown angles
+
+clc;clear all; close all ; 
+rng(0,'twister')
+
+h = 256 ; 
+mN = 512 ; % Number of angles 
+m = 4 ; 
+N = mN/m ; % Final number of angles 
+w=h;
+
+img = phantom (h) ; 
+
+angles = linspace(0,180,mN) ;
+angles = angles(randperm(size(angles,2))) ; 
+
+%% Experiment with different number of angles 
+for mn=[128,512,1024] 
+    run_diff_angles(img,mn,140) ; 
+    pause(1) ; 
+end
+
+%% Noiseless experiment for different epsilon
+
+figure; imshow(img,[]) ; title('Original image') ; pause(1) ; 
+X = radon(img,angles,500) ; 
+for epsilon = [1,50,150,200]
+   out = perform_graph_laplacian(X,angles,mN,N,m,epsilon);
+   figure; imshow(out,[]) ; title (['epsilon = ',num2str(epsilon)]) ; pause(1); 
+end
+
+
+%% Testing for different noise variances
+% Clearly on increasing the noise variance the algorithm does badly in case
+% of high noise
+for noise_variance=[0.05,0.1,0.5] 
+   noisy_img = img + noise_variance * randn(size(img)) ;  
+   X = radon(noisy_img,angles,500) ; 
+   out = perform_graph_laplacian(X,angles,mN,N,m,140);
+   figure; 
+   subplot(1,2,1) ; imshow(noisy_img,[]) ; title(['sigma=',num2str(noise_variance)]) ;  
+   subplot(1,2,2) ; imshow(out,[]) ; title ('Reconstructed image') ; 
+   pause(1) ; 
+end
+
+
+
+%% Running algorithm on brain images
+% Chosen the best epsilon
+load brain_image ; 
+brain = imageData .* imageMask ;
+figure; imshow(brain,[]); title('Original image') ; pause(1) ;
+for angles = [128,256,512,1024]
+    run_diff_angles(brain,angles,480) ; 
+    pause(1) ; 
+end
+
+
+##### SOURCE END #####
+--></body></html>
